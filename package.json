@@ -21,7 +21,9 @@
   "homepage": "https://github.com/Metylene/Kub3dit-WebGL#readme",
   "devDependencies": {
     "@types/three": "latest",
+    "css-loader": "latest",
     "html-webpack-plugin": "latest",
+    "style-loader": "latest",
     "ts-loader": "latest",
     "typescript": "latest",
     "webpack": "latest",
