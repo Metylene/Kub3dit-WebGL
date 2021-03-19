@@ -1,6 +1,5 @@
 import Cell from "./Cell";
 import { XYZ } from "../Utils/XYZ";
-import { MathUtils } from "three";
 
 export default class VoxelWorld {
     /**
@@ -67,7 +66,7 @@ export default class VoxelWorld {
             }
             cell = this.addCellForVoxel(voxelPosition);
         }
-        cell.setVoxel(this.computeVoxelOffset(voxelPosition), voxelId);
+        cell.setVoxel(Cell.computeVoxelOffset(voxelPosition, this.cellSize), voxelId);
     }
     addCellForVoxel(voxelPosition: XYZ.type): Cell {
         // FIXME Is it useless to check if we find the cell ? We did in the method calling this one
@@ -92,26 +91,36 @@ export default class VoxelWorld {
         const cellId = this.computeCellPosition(voxelPosition);
         return this.getCell(cellId);
     }
-    computeVoxelOffset(voxelPosition: XYZ.type): number{
-        const voxelX = MathUtils.euclideanModulo(voxelPosition.x, this.cellSize) | 0;
-        const voxelY = MathUtils.euclideanModulo(voxelPosition.y, this.cellSize) | 0;
-        const voxelZ = MathUtils.euclideanModulo(voxelPosition.z, this.cellSize) | 0;
-        return voxelY * this.cellSize * this.cellSize +
-            voxelZ * this.cellSize +
-            voxelX;
+    generateCellsMeshArray(): THREE.Mesh[] {
+        const worldSizeInCell = {
+            x: Math.floor(this.size.x / this.cellSize),
+            y: Math.floor(this.size.y / this.cellSize),
+            z: Math.floor(this.size.z / this.cellSize)
+        }
+        let meshArray : THREE.Mesh[] = [];
+        for (let x = 0; x < worldSizeInCell.x; x++) {
+            for (let y = 0; y < worldSizeInCell.y; y++) {
+                for (let z = 0; z < worldSizeInCell.z; z++) {
+                    const cell = this.getCell(x, y, z);
+                    let mesh = cell.generateMesh();
+                    meshArray.push(mesh);
+                }
+            }
+        }
+        return meshArray;
     }
 
 
     /**
      * GETTERS / SETTERS
      */
-    private getCell(x: number, y: number, z: number)
-    private getCell(cellId: XYZ.type)
-    private getCell(xOrCellId : number | XYZ.type, y?: number, z?: number): Cell{
-        if(typeof xOrCellId === "number"){
-            return this.cells[xOrCellId][y][z];
+    private getCell(x: number, y: number, z: number): Cell
+    private getCell(CellPosition: XYZ.type): Cell
+    private getCell(xOrCellPosition : number | XYZ.type, y?: number, z?: number): Cell{
+        if(typeof xOrCellPosition === "number"){
+            return this.cells[xOrCellPosition][y][z];
         } else {
-            return this.cells[xOrCellId.x][xOrCellId.y][xOrCellId.z];
+            return this.cells[xOrCellPosition.x][xOrCellPosition.y][xOrCellPosition.z];
         }
     }
     /**
