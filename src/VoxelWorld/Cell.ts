@@ -1,5 +1,5 @@
 import { XYZ, multiplyBy } from "../Utils/XYZ";
-import { Mesh, BufferGeometry, MeshLambertMaterial, BufferAttribute } from "three";
+import { Mesh, BufferGeometry, BufferAttribute } from "three";
 import { MathUtils } from "three";
 import { Voxel } from "./Voxel";
 
@@ -24,11 +24,10 @@ export default class Cell {
         this.voxels[voxelOffset] = voxelId;
     }
 
-    generateMesh(): THREE.Mesh{
+    generateMesh(material): THREE.Mesh{
         if(typeof this.mesh === 'undefined'){
             const {positions, normals, indices} = this.generateGeometryData();
             const geometry = new BufferGeometry();
-            const material = new MeshLambertMaterial({color: 0x1167B1});
 
             const positionNumComponents = 3;
             const normalNumComponents = 3;
@@ -40,9 +39,6 @@ export default class Cell {
                 new BufferAttribute(new Float32Array(normals), normalNumComponents));
             geometry.setIndex(indices);
             this.mesh = new Mesh(geometry, material);
-            console.log(this.mesh);
-        } else {
-            console.log("Ah ? Oups !");
         }
         return this.mesh;
     }

@@ -1,5 +1,6 @@
 import Cell from "./Cell";
 import { XYZ } from "../Utils/XYZ";
+import { MeshLambertMaterial } from "three";
 
 export default class VoxelWorld {
     /**
@@ -97,12 +98,13 @@ export default class VoxelWorld {
             y: Math.floor(this.size.y / this.cellSize),
             z: Math.floor(this.size.z / this.cellSize)
         }
+        const material = new MeshLambertMaterial({color: 0x1167B1});
         let meshArray : THREE.Mesh[] = [];
         for (let x = 0; x < worldSizeInCell.x; x++) {
             for (let y = 0; y < worldSizeInCell.y; y++) {
                 for (let z = 0; z < worldSizeInCell.z; z++) {
                     const cell = this.getCell(x, y, z);
-                    let mesh = cell.generateMesh();
+                    let mesh = cell.generateMesh(material);
                     meshArray.push(mesh);
                 }
             }
