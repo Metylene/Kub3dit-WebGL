@@ -35,7 +35,9 @@ export default class Cell {
                 new BufferAttribute(new Float32Array(normals), normalNumComponents));
             geometry.setIndex(indices);
             this.mesh = new Mesh(geometry, material);
-            this.mesh.name = this.world.computeCellId(multiplyBy(this.position, this.world.cellSize));
+            this.mesh.name = this.id;
+            // const voxelOrigineCell = multiplyBy(this.position, this.world.cellSize)
+            // this.mesh.position.set(voxelOrigineCell.x, voxelOrigineCell.y, voxelOrigineCell.z);
         }
         return this.mesh;
     }
@@ -64,7 +66,7 @@ export default class Cell {
                             const neighbor = this.world.getVoxel(neighborPosition);
                             if (!neighbor) {
                                 const ndx = positions.length / 3;
-                                for (const pos of corners) {
+                                for (const {pos, uv} of corners) {
                                     positions.push(pos[0] + x, pos[1] + y, pos[2] + z);
                                     normals.push(...direction);
                                 }
@@ -96,6 +98,9 @@ export default class Cell {
     /**
      * GETTERS / SETTERS
      */
+    get id(): string{
+        return `${this.position.x},${this.position.y},${this.position.z}`;
+    }
     /** 
      * Position of this cell compared to other cells. Not in voxel distance.
      * Correspond to the cellId in their world.

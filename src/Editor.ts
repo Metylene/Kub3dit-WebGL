@@ -2,7 +2,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import VoxelWorld from './VoxelWorld/VoxelWorld';
 import { multiplyBy, XYZ } from "./Utils/XYZ";
 import { Utils } from "./Utils/Utils";
-import { Color, WebGLRenderer, DirectionalLight, PerspectiveCamera, Scene, MeshLambertMaterial, FogExp2, Fog } from "three";
+import { Color, WebGLRenderer, DirectionalLight, PerspectiveCamera, Scene, MeshLambertMaterial, Fog, MeshBasicMaterial } from "three";
 
 export class Editor {
 
@@ -10,6 +10,7 @@ export class Editor {
     renderRequested = false;
 
     material = new MeshLambertMaterial({ color: 0x1167B1 });
+    translucentMaterial = new MeshBasicMaterial( { color: 0xff0000, transparent: true, opacity: 0.5 } );
     renderer: WebGLRenderer;
 
     controls: OrbitControls;
@@ -50,30 +51,16 @@ export class Editor {
     private generateAllMesh() {
         for (const cellId in this.world.cells) {
             const cell = this.world.cells[cellId];
-            let mesh = cell.generateMesh(this.material);
+            let material : any = this.material;
+            if(Math.random() > 0.7){
+                material = this.translucentMaterial;
+            }
+            let mesh = cell.generateMesh(material);
             this.scene.add(mesh);
 
             const voxelOrigineCell = multiplyBy(cell.position, this.world.cellSize)
             mesh.position.set(voxelOrigineCell.x, voxelOrigineCell.y, voxelOrigineCell.z);
         }
-        // for (const cellId in this.world.cells) {
-        //     const cell = this.world.cells[cellId];
-        //     // const { positions, normals, indices } = cell.generateGeometryData();
-        //     const geometry = cell.mesh.geometry;
-
-        //     // const positionNumComponents = 3;
-        //     // const normalNumComponents = 3;
-        //     // geometry.setAttribute(
-        //     //     'position',
-        //     //     new BufferAttribute(new Float32Array(positions), positionNumComponents));
-        //     // geometry.setAttribute(
-        //     //     'normal',
-        //     //     new BufferAttribute(new Float32Array(normals), normalNumComponents));
-        //     // geometry.attributes.position.needsUpdate = true;
-        //     // geometry.attributes.normal.needsUpdate = true;
-        //     // geometry.setIndex(indices);
-        //     // geometry.computeBoundingSphere();
-        // }
     }
 
     updateGeometry(){
@@ -83,8 +70,6 @@ export class Editor {
             if(!mesh){
                 mesh = cell.generateMesh(this.material);
                 this.scene.add(mesh);
-            } else {
-
             }
 
             const voxelOrigineCell = multiplyBy(cell.position, this.world.cellSize)
