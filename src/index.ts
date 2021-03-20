@@ -1,4 +1,4 @@
-import './style.css';
+import './static/style.css';
 import { Editor } from './Editor';
 
 const editor = new Editor();
