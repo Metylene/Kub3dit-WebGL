@@ -1,21 +1,22 @@
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import VoxelWorld from './VoxelWorld/VoxelWorld';
-import { XYZ } from "./Utils/XYZ";
+import { multiplyBy, XYZ } from "./Utils/XYZ";
 import { Utils } from "./Utils/Utils";
-import { Color, WebGLRenderer, DirectionalLight, PerspectiveCamera, Scene } from "three";
+import { Color, WebGLRenderer, DirectionalLight, PerspectiveCamera, Scene, MeshLambertMaterial, FogExp2, Fog } from "three";
 
 export class Editor {
 
     world: VoxelWorld;
     renderRequested = false;
 
+    material = new MeshLambertMaterial({ color: 0x1167B1 });
     renderer: WebGLRenderer;
 
     controls: OrbitControls;
     camera: PerspectiveCamera;
     scene: Scene;
 
-    private resizeRendererToDisplaySize(renderer: WebGLRenderer) {
+    private resizeRendererToDisplaySize() {
         const canvas = this.renderer.domElement;
         const width = canvas.clientWidth;
         const height = canvas.clientHeight;
@@ -37,7 +38,7 @@ export class Editor {
     render() {
         this.renderRequested = undefined;
 
-        if (this.resizeRendererToDisplaySize(this.renderer)) {
+        if (this.resizeRendererToDisplaySize()) {
             const canvas = this.renderer.domElement;
             this.camera.aspect = canvas.clientWidth / canvas.clientHeight;
             this.camera.updateProjectionMatrix();
@@ -46,14 +47,60 @@ export class Editor {
         this.renderer.render(this.scene, this.camera);
     }
 
+    private generateAllMesh() {
+        for (const cellId in this.world.cells) {
+            const cell = this.world.cells[cellId];
+            let mesh = cell.generateMesh(this.material);
+            this.scene.add(mesh);
+
+            const voxelOrigineCell = multiplyBy(cell.position, this.world.cellSize)
+            mesh.position.set(voxelOrigineCell.x, voxelOrigineCell.y, voxelOrigineCell.z);
+        }
+        // for (const cellId in this.world.cells) {
+        //     const cell = this.world.cells[cellId];
+        //     // const { positions, normals, indices } = cell.generateGeometryData();
+        //     const geometry = cell.mesh.geometry;
+
+        //     // const positionNumComponents = 3;
+        //     // const normalNumComponents = 3;
+        //     // geometry.setAttribute(
+        //     //     'position',
+        //     //     new BufferAttribute(new Float32Array(positions), positionNumComponents));
+        //     // geometry.setAttribute(
+        //     //     'normal',
+        //     //     new BufferAttribute(new Float32Array(normals), normalNumComponents));
+        //     // geometry.attributes.position.needsUpdate = true;
+        //     // geometry.attributes.normal.needsUpdate = true;
+        //     // geometry.setIndex(indices);
+        //     // geometry.computeBoundingSphere();
+        // }
+    }
+
+    updateGeometry(){
+        for (const cellId in this.world.cells) {
+            const cell = this.world.cells[cellId];
+            let mesh = cell.mesh;
+            if(!mesh){
+                mesh = cell.generateMesh(this.material);
+                this.scene.add(mesh);
+            } else {
+
+            }
+
+            const voxelOrigineCell = multiplyBy(cell.position, this.world.cellSize)
+            mesh.position.set(voxelOrigineCell.x, voxelOrigineCell.y, voxelOrigineCell.z);
+        }
+    }
+
     main() {
         const canvas = document.querySelector('#c') as HTMLCanvasElement;
         this.renderer = new WebGLRenderer({ canvas });
 
         this.scene = new Scene();
         this.scene.background = new Color("lightblue");
+        this.scene.fog = new Fog( "lightblue", 64, 100 );
 
-        const worldSize: XYZ = { x: 64, y: 32, z: 128 };
+        const worldSize: XYZ = { x: 256, y: 32, z: 256 };
         const cellSize = 32;
 
         function addLight(scene: Scene, position: XYZ) {
@@ -77,23 +124,19 @@ export class Editor {
         for (let y = 0; y < worldSize.y; y++) {
             for (let z = 0; z < worldSize.z; z++) {
                 for (let x = 0; x < worldSize.x; x++) {
-                    // const height = (Math.sin(x / cellSize * Math.PI * 2) + Math.sin(z / cellSize * Math.PI * 3)) * (cellSize / 6) + (cellSize / 2);
-                    const height = 32;
-                    if (y == x || y == z || x == z) {
+                    const height = (Math.sin(x / cellSize * Math.PI * 2) + Math.sin(z / cellSize * Math.PI * 3)) * (cellSize / 6) + (cellSize / 2);
+                    // const height = 64;
+                    if (y < height) {
+                    // if (y == x || y == z || x == z) {
                         const voxelId = Utils.randomInt(1, 20);
                         this.world.setVoxel({ x, y, z }, voxelId);
                     }
                 }
             }
         }
-        let meshArray = this.world.generateCellsMeshArray();
-        for (let i = 0; i < meshArray.length; i++) {
-            const mesh = meshArray[i];
-            this.scene.add(mesh);
-        }
-        this.render();
 
-        console.log(this.world.cells);
+        this.generateAllMesh();
+        this.render();
 
         let editor = this;
         this.controls.addEventListener('change', () => editor.requestRenderIfNotRequested());

@@ -1,5 +1,5 @@
 import { XYZ, multiplyBy } from "../Utils/XYZ";
-import { Mesh, BufferGeometry, BufferAttribute } from "three";
+import { Mesh, BufferGeometry, BufferAttribute, Material } from "three";
 import { Voxel } from "./Voxel";
 import VoxelWorld from "./VoxelWorld";
 
@@ -20,7 +20,7 @@ export default class Cell {
         this.position = cellPosition;
     }
 
-    generateMesh(material): THREE.Mesh {
+    generateMesh(material: Material): THREE.Mesh {
         if (typeof this.mesh === 'undefined') {
             const { positions, normals, indices } = this.generateGeometryData();
             const geometry = new BufferGeometry();
@@ -35,6 +35,7 @@ export default class Cell {
                 new BufferAttribute(new Float32Array(normals), normalNumComponents));
             geometry.setIndex(indices);
             this.mesh = new Mesh(geometry, material);
+            this.mesh.name = this.world.computeCellId(multiplyBy(this.position, this.world.cellSize));
         }
         return this.mesh;
     }

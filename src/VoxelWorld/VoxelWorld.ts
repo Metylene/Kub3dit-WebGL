@@ -85,25 +85,25 @@ export default class VoxelWorld {
         }
         return cell.voxels[VoxelWorld.computeVoxelOffset(voxelPosition, this.cellSize)];
     }
-    generateCellsMeshArray(): THREE.Mesh[] {
-        const worldSizeInCell = {
-            x: Math.floor(this.size.x / this.cellSize),
-            y: Math.floor(this.size.y / this.cellSize),
-            z: Math.floor(this.size.z / this.cellSize)
-        }
-        const material = new MeshLambertMaterial({ color: 0x1167B1 });
-        let meshArray: THREE.Mesh[] = [];
-        for (let x = 0; x < worldSizeInCell.x; x++) {
-            for (let y = 0; y < worldSizeInCell.y; y++) {
-                for (let z = 0; z < worldSizeInCell.z; z++) {
-                    const cell = this.getCell(this.computeCellId({ x: x, y: y, z: z }));
-                    let mesh = cell.generateMesh(material);
-                    meshArray.push(mesh);
-                }
-            }
-        }
-        return meshArray;
-    }
+    // generateCellsMeshArray(): THREE.Mesh[] {
+    //     const worldSizeInCell = {
+    //         x: Math.floor(this.size.x / this.cellSize),
+    //         y: Math.floor(this.size.y / this.cellSize),
+    //         z: Math.floor(this.size.z / this.cellSize)
+    //     }
+    //     const material = new MeshLambertMaterial({ color: 0x1167B1 });
+    //     let meshArray: THREE.Mesh[] = [];
+    //     for (let x = 0; x < worldSizeInCell.x; x++) {
+    //         for (let y = 0; y < worldSizeInCell.y; y++) {
+    //             for (let z = 0; z < worldSizeInCell.z; z++) {
+    //                 const cell = this.getCell(this.computeCellId({ x: x, y: y, z: z }));
+    //                 let mesh = cell.generateMesh(material);
+    //                 meshArray.push(mesh);
+    //             }
+    //         }
+    //     }
+    //     return meshArray;
+    // }
 
     static computeVoxelOffset(voxelPosition: XYZ, cellSize: number): number {
         const voxelX = MathUtils.euclideanModulo(voxelPosition.x, cellSize) | 0;
