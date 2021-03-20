@@ -1,6 +1,6 @@
 import Cell from "./Cell";
 import { XYZ } from "../Utils/XYZ";
-import { MeshLambertMaterial } from "three";
+import { MathUtils, MeshLambertMaterial } from "three";
 
 export default class VoxelWorld {
     /**
@@ -12,18 +12,18 @@ export default class VoxelWorld {
      * Length of the _supports_ world in voxel for each axis. Must be Integer and minimum equal to Cellsize.
      * @default {x:cellSize, y:cellSize, z:cellSize}
      */
-    private _size: XYZ.type = {x:this._cellSize, y:this._cellSize, z:this._cellSize};
+    private _size: XYZ = {x:this._cellSize, y:this._cellSize, z:this._cellSize};
     /**
      *  Cell array that make up the world.
      */
-    cells : Cell[][][];
+    cells : { [cellId: string]: Cell } = {};
     
     /**
      * World made up of Cells.
      * @param worldSize Length of the world in voxel for each axis. Must be Integer and minimum equal to Cellsize.
      * @param options.cellSize Voxel length of the edge of a Cell. Must be Integer and minimum 1. Default 32
      */
-    constructor(worldSize : XYZ.type, options ?: {cellSize ?: number}){
+    constructor(worldSize : XYZ, options ?: {cellSize ?: number}){
         if(typeof options !== 'undefined'){
             if(typeof options.cellSize !== 'undefined'){
                 // Todo throw error if this.size.x or y or z < Cellsize
@@ -31,35 +31,23 @@ export default class VoxelWorld {
             }
         }
         this.size = worldSize; // Setter take care that size is minimum 1 cell
-        const cellLength = {
-            x: Math.floor(this.size.x / this.cellSize), // length
-            y: Math.floor(this.size.y / this.cellSize), // height
-            z: Math.floor(this.size.z / this.cellSize)  // depth
-        };
-        this.cells = []
-        for (let x = 0; x < cellLength.x; x++) {
-            let length : Cell[][] = []
-            for (let y = 0; y < cellLength.y; y++) {
-                let height : Cell[] = []
-                for (let z = 0; z < cellLength.z; z++) {
-                    const cell = new Cell({x:x, y:y, z:z}, this.cellSize); // height
-                    height.push(cell);
-                }
-                length.push(height);
-            }
-            this.cells.push(length);
-        }
     }
 
-    private computeCellPosition(voxelPosition : XYZ.type){
+    computeCellPosition(voxelPosition : XYZ){
         const cellX = Math.floor(voxelPosition.x / this.cellSize);
         const cellY = Math.floor(voxelPosition.y / this.cellSize);
         const cellZ = Math.floor(voxelPosition.z / this.cellSize);
         return {x: cellX, y: cellY, z: cellZ};
     }
+    computeCellId(voxelPosition: XYZ): string{
+        const cellSize = this.cellSize;
+        const cellX = Math.floor(voxelPosition.x / cellSize);
+        const cellY = Math.floor(voxelPosition.y / cellSize);
+        const cellZ = Math.floor(voxelPosition.z / cellSize);
+        return `${cellX},${cellY},${cellZ}`;
+    }
 
-
-    setVoxel(voxelPosition : XYZ.type, voxelId: number, addCell = true) {
+    setVoxel(voxelPosition : XYZ, voxelId: number, addCell = true) {
         let cell = this.getCellForVoxel(voxelPosition);
         if(!cell){
             if(!addCell){
@@ -67,30 +55,35 @@ export default class VoxelWorld {
             }
             cell = this.addCellForVoxel(voxelPosition);
         }
-        cell.setVoxel(Cell.computeVoxelOffset(voxelPosition, this.cellSize), voxelId);
+        cell.setVoxel(VoxelWorld.computeVoxelOffset(voxelPosition, this.cellSize), voxelId);
     }
-    addCellForVoxel(voxelPosition: XYZ.type): Cell {
+    addCellForVoxel(voxelPosition: XYZ): Cell {
         // FIXME Is it useless to check if we find the cell ? We did in the method calling this one
-        const cellId = this.computeCellPosition(voxelPosition);
+        const cellId = this.computeCellId(voxelPosition);
         let cell : Cell = this.getCell(cellId);
         if(!cell){
-            cell = new Cell(cellId, this.cellSize);
-            if(typeof this.cells[cellId.x] === 'undefined'){
-                this.cells[cellId.x] = [];
-            }
-            if(typeof this.cells[cellId.x][cellId.y] === 'undefined'){
-                this.cells[cellId.x][cellId.y] = [];
-            }
-            this.cells[cellId.x][cellId.y][cellId.z] = cell;
+            cell = new Cell(this.computeCellPosition(voxelPosition), this);
+            this.cells[cellId] = cell;
         } else {
             // TODO throw error because we want to add already existing cell
             console.error("addCellForVoxel()", "Cell exist. We can't add it again");
         }
         return cell;
     }
-    getCellForVoxel(voxelPosition : XYZ.type): Cell {
-        const cellId = this.computeCellPosition(voxelPosition);
+    getCellForVoxel(voxelPosition : XYZ): Cell {
+        const cellId = this.computeCellId(voxelPosition);
         return this.getCell(cellId);
+    }
+    getCell(cellId: string): Cell{
+        return this.cells[cellId];
+    }
+    getVoxel(voxelPosition: XYZ): number{
+        const cellId = this.computeCellId(voxelPosition);
+        const cell = this.cells[cellId];
+        if(!cell) {
+            return 0;
+        }
+        return cell.voxels[VoxelWorld.computeVoxelOffset(voxelPosition, this.cellSize)];
     }
     generateCellsMeshArray(): THREE.Mesh[] {
         const worldSizeInCell = {
@@ -103,7 +96,7 @@ export default class VoxelWorld {
         for (let x = 0; x < worldSizeInCell.x; x++) {
             for (let y = 0; y < worldSizeInCell.y; y++) {
                 for (let z = 0; z < worldSizeInCell.z; z++) {
-                    const cell = this.getCell(x, y, z);
+                    const cell = this.getCell(this.computeCellId({x: x, y: y, z: z}));
                     let mesh = cell.generateMesh(material);
                     meshArray.push(mesh);
                 }
@@ -112,30 +105,30 @@ export default class VoxelWorld {
         return meshArray;
     }
 
+    static computeVoxelOffset(voxelPosition: XYZ, cellSize: number): number{
+        const voxelX = MathUtils.euclideanModulo(voxelPosition.x, cellSize) | 0;
+        const voxelY = MathUtils.euclideanModulo(voxelPosition.y, cellSize) | 0;
+        const voxelZ = MathUtils.euclideanModulo(voxelPosition.z, cellSize) | 0;
+        return voxelY * cellSize * cellSize +
+            voxelZ * cellSize +
+            voxelX;
+    }
+
 
     /**
      * GETTERS / SETTERS
      */
-    private getCell(x: number, y: number, z: number): Cell
-    private getCell(CellPosition: XYZ.type): Cell
-    private getCell(xOrCellPosition : number | XYZ.type, y?: number, z?: number): Cell{
-        if(typeof xOrCellPosition === "number"){
-            return this.cells[xOrCellPosition][y][z];
-        } else {
-            return this.cells[xOrCellPosition.x][xOrCellPosition.y][xOrCellPosition.z];
-        }
-    }
     /**
      * Length of the world in voxel for each axis.
      */
-    public get size(): XYZ.type {
+    public get size(): XYZ {
         return this._size;
     }
     /** 
      * Values must be Integers.
      * @min_value 1 for each axis
      */
-    public set size(value: XYZ.type) {
+    public set size(value: XYZ) {
         // TODO throw error if one axe is < 1 and/or not integer
         this._size.x = Math.max(1 * this.cellSize, Math.floor(value.x));
         this._size.y = Math.max(1 * this.cellSize, Math.floor(value.y));

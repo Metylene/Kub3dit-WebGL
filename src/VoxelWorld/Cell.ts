@@ -1,27 +1,23 @@
 import { XYZ, multiplyBy } from "../Utils/XYZ";
 import { Mesh, BufferGeometry, BufferAttribute } from "three";
-import { MathUtils } from "three";
 import { Voxel } from "./Voxel";
+import VoxelWorld from "./VoxelWorld";
 
 export type cellId = "{cellPosition.x,cellPosition.y,cellPosition.z}";
 
 export default class Cell {
 
-    private _size: number;
-    private _position: XYZ.type;
+    readonly world: VoxelWorld;
+    private _position: XYZ;
 
     voxels: Uint8Array;
 
     mesh: THREE.Mesh;
 
-    constructor(position: XYZ.type, size : number){
-        this.size = size;
-        this.voxels = new Uint8Array(size * size * size);
-        this.position = position;
-    }
-
-    setVoxel(voxelOffset: number, voxelId: number) {
-        this.voxels[voxelOffset] = voxelId;
+    constructor(cellPosition: XYZ, world : VoxelWorld){
+        this.world = world;
+        this.voxels = new Uint8Array(world.cellSize * world.cellSize * world.cellSize);
+        this.position = cellPosition;
     }
 
     generateMesh(material): THREE.Mesh{
@@ -43,19 +39,20 @@ export default class Cell {
         return this.mesh;
     }
     generateGeometryData() {
+        const cellSize = this.world.cellSize;
         const positions = [];
         const normals = [];
         const indices = [];
-        const startVoxelPosition = multiplyBy(this.position, this.size);
+        const startVoxelPosition = multiplyBy(this.position, cellSize);
         
-        let currentVoxelPosition: XYZ.type = {x:0, y:0, z:0};
-        for (let x = 0; x < this.size; x++) {
+        let currentVoxelPosition: XYZ = {x:0, y:0, z:0};
+        for (let x = 0; x < cellSize; x++) {
             currentVoxelPosition.x = startVoxelPosition.x + x;
-            for (let y = 0; y < this.size; y++) {
+            for (let y = 0; y < cellSize; y++) {
                 currentVoxelPosition.y = startVoxelPosition.y + y;
-                for (let z = 0; z < this.size; z++) {
+                for (let z = 0; z < cellSize; z++) {
                     currentVoxelPosition.z = startVoxelPosition.z + z;
-                    const voxel = this.getVoxel(currentVoxelPosition);
+                    const voxel = this.world.getVoxel(currentVoxelPosition);
                     if(voxel){
                         for(const {direction, corners} of Voxel.Faces){
                             const neighborPosition = {
@@ -63,7 +60,7 @@ export default class Cell {
                                 y: currentVoxelPosition.y + direction[1],
                                 z: currentVoxelPosition.z + direction[2]
                             };
-                            const neighbor = this.getVoxel(neighborPosition);
+                            const neighbor = this.world.getVoxel(neighborPosition);
                             if(!neighbor){
                                 const ndx = positions.length / 3;
                                 for(const pos of corners){
@@ -87,18 +84,12 @@ export default class Cell {
           indices,
         };
     }
-    getVoxel(position: XYZ.type): number{
-        const voxelOffset = Cell.computeVoxelOffset(position, this.size);
-        return this.voxels[voxelOffset];
-    }
-
-    static computeVoxelOffset(voxelPosition: XYZ.type, cellSize: number): number{
-        const voxelX = MathUtils.euclideanModulo(voxelPosition.x, cellSize) | 0;
-        const voxelY = MathUtils.euclideanModulo(voxelPosition.y, cellSize) | 0;
-        const voxelZ = MathUtils.euclideanModulo(voxelPosition.z, cellSize) | 0;
-        return voxelY * cellSize * cellSize +
-            voxelZ * cellSize +
-            voxelX;
+    /**
+     * @param offset Offset between the voxel and the cell position
+     * @param voxelId What type of voxel is it
+     */
+    setVoxel(offset: number, voxelId: number){
+        this.voxels[offset] = voxelId;
     }
 
     /**
@@ -110,23 +101,16 @@ export default class Cell {
      * @example
      * Cell{1, 0, 0} is next to Cell{0, 0, 0}
      */
-    public get position(): XYZ.type {
+    public get position(): XYZ {
         return this._position;
     }
     /** Must be Integers */
-    public set position(position: XYZ.type) {
+    public set position(position: XYZ) {
         // TODO throw error if x, y or z isn't integer
         position.x = Math.floor(position.x);
         position.y = Math.floor(position.y);
         position.z = Math.floor(position.z);
         this._position = position;
-    }
-    public get size(): number {
-        return this._size;
-    }
-    public set size(value: number) {
-        // TODO throw error if size is < 1 or not integer
-        this._size = value;
     }
 
 

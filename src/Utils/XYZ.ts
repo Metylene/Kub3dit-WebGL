@@ -1,11 +1,7 @@
-export namespace XYZ {
-
-    export type type = {
-        x: number;
-        y: number;
-        z: number;
-    };
-
+export type XYZ = {
+    x: number;
+    y: number;
+    z: number;
 }
 
 /**
@@ -14,7 +10,7 @@ export namespace XYZ {
  * @param value Value used to multiply by
  * @returns new XYZ object
  */
-export function multiplyBy(xyz: XYZ.type, value: number): XYZ.type{
+export function multiplyBy(xyz: XYZ, value: number): XYZ{
     return {
         x: xyz.x * value,
         y: xyz.y * value,
