@@ -10,7 +10,7 @@ export type XYZ = {
  * @param value Value used to multiply by
  * @returns new XYZ object
  */
-export function multiplyBy(xyz: XYZ, value: number): XYZ{
+export function multiplyBy(xyz: XYZ, value: number): XYZ {
     return {
         x: xyz.x * value,
         y: xyz.y * value,

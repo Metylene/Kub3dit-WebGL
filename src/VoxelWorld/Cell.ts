@@ -14,15 +14,15 @@ export default class Cell {
 
     mesh: THREE.Mesh;
 
-    constructor(cellPosition: XYZ, world : VoxelWorld){
+    constructor(cellPosition: XYZ, world: VoxelWorld) {
         this.world = world;
         this.voxels = new Uint8Array(world.cellSize * world.cellSize * world.cellSize);
         this.position = cellPosition;
     }
 
-    generateMesh(material): THREE.Mesh{
-        if(typeof this.mesh === 'undefined'){
-            const {positions, normals, indices} = this.generateGeometryData();
+    generateMesh(material): THREE.Mesh {
+        if (typeof this.mesh === 'undefined') {
+            const { positions, normals, indices } = this.generateGeometryData();
             const geometry = new BufferGeometry();
 
             const positionNumComponents = 3;
@@ -44,8 +44,8 @@ export default class Cell {
         const normals = [];
         const indices = [];
         const startVoxelPosition = multiplyBy(this.position, cellSize);
-        
-        let currentVoxelPosition: XYZ = {x:0, y:0, z:0};
+
+        let currentVoxelPosition: XYZ = { x: 0, y: 0, z: 0 };
         for (let x = 0; x < cellSize; x++) {
             currentVoxelPosition.x = startVoxelPosition.x + x;
             for (let y = 0; y < cellSize; y++) {
@@ -53,24 +53,24 @@ export default class Cell {
                 for (let z = 0; z < cellSize; z++) {
                     currentVoxelPosition.z = startVoxelPosition.z + z;
                     const voxel = this.world.getVoxel(currentVoxelPosition);
-                    if(voxel){
-                        for(const {direction, corners} of Voxel.Faces){
+                    if (voxel) {
+                        for (const { direction, corners } of Voxel.Faces) {
                             const neighborPosition = {
                                 x: currentVoxelPosition.x + direction[0],
                                 y: currentVoxelPosition.y + direction[1],
                                 z: currentVoxelPosition.z + direction[2]
                             };
                             const neighbor = this.world.getVoxel(neighborPosition);
-                            if(!neighbor){
+                            if (!neighbor) {
                                 const ndx = positions.length / 3;
-                                for(const pos of corners){
+                                for (const pos of corners) {
                                     positions.push(pos[0] + x, pos[1] + y, pos[2] + z);
                                     normals.push(...direction);
                                 }
                                 indices.push(
                                     ndx, ndx + 1, ndx + 2,
                                     ndx + 2, ndx + 1, ndx + 3,
-                                  );
+                                );
                             }
                         }
                     }
@@ -79,16 +79,16 @@ export default class Cell {
         }
 
         return {
-          positions,
-          normals,
-          indices,
+            positions,
+            normals,
+            indices,
         };
     }
     /**
      * @param offset Offset between the voxel and the cell position
      * @param voxelId What type of voxel is it
      */
-    setVoxel(offset: number, voxelId: number){
+    setVoxel(offset: number, voxelId: number) {
         this.voxels[offset] = voxelId;
     }
 

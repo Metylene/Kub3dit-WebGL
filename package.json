@@ -1,36 +1,36 @@
 {
-  "name": "kub3dit-webgl",
-  "version": "1.0.0",
-  "description": "WebGL voxel editor based on Kub3dit flash voxel editor",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "webpack serve --inline --open",
-    "dev": "webpack serve --inline --open --watch-content-base"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Metylene/Kub3dit-WebGL.git"
-  },
-  "keywords": [],
-  "author": "Metylene",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Metylene/Kub3dit-WebGL/issues"
-  },
-  "homepage": "https://github.com/Metylene/Kub3dit-WebGL#readme",
-  "devDependencies": {
-    "@types/three": "latest",
-    "css-loader": "latest",
-    "html-webpack-plugin": "latest",
-    "style-loader": "latest",
-    "ts-loader": "latest",
-    "typescript": "latest",
-    "webpack": "latest",
-    "webpack-cli": "latest",
-    "webpack-dev-server": "latest"
-  },
-  "dependencies": {
-    "three": "latest"
-  }
+    "name": "kub3dit-webgl",
+    "version": "1.0.0",
+    "description": "WebGL voxel editor based on Kub3dit flash voxel editor",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "webpack serve --inline --open",
+        "dev": "webpack serve --inline --open --watch-content-base"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Metylene/Kub3dit-WebGL.git"
+    },
+    "keywords": [],
+    "author": "Metylene",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Metylene/Kub3dit-WebGL/issues"
+    },
+    "homepage": "https://github.com/Metylene/Kub3dit-WebGL#readme",
+    "devDependencies": {
+        "@types/three": "latest",
+        "css-loader": "latest",
+        "html-webpack-plugin": "latest",
+        "style-loader": "latest",
+        "ts-loader": "latest",
+        "typescript": "latest",
+        "webpack": "latest",
+        "webpack-cli": "latest",
+        "webpack-dev-server": "latest"
+    },
+    "dependencies": {
+        "three": "latest"
+    }
 }

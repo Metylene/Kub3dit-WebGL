@@ -6,26 +6,26 @@ import { Color, WebGLRenderer, DirectionalLight, PerspectiveCamera, Scene } from
 
 export class Editor {
 
-    world : VoxelWorld;
+    world: VoxelWorld;
     renderRequested = false;
 
-    renderer : WebGLRenderer;
+    renderer: WebGLRenderer;
 
-    controls : OrbitControls;
+    controls: OrbitControls;
     camera: PerspectiveCamera;
     scene: Scene;
 
-    private resizeRendererToDisplaySize(renderer : WebGLRenderer) {
-      const canvas = this.renderer.domElement;
-      const width = canvas.clientWidth;
-      const height = canvas.clientHeight;
-      const needResize = canvas.width !== width || canvas.height !== height;
-      if (needResize) {
-        this.renderer.setSize(width, height, false);
-      }
-      return needResize;
+    private resizeRendererToDisplaySize(renderer: WebGLRenderer) {
+        const canvas = this.renderer.domElement;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        const needResize = canvas.width !== width || canvas.height !== height;
+        if (needResize) {
+            this.renderer.setSize(width, height, false);
+        }
+        return needResize;
     }
-        
+
     requestRenderIfNotRequested() {
         if (!this.renderRequested) {
             this.renderRequested = true;
@@ -35,36 +35,36 @@ export class Editor {
     }
 
     render() {
-      this.renderRequested = undefined;
+        this.renderRequested = undefined;
 
-      if (this.resizeRendererToDisplaySize(this.renderer)) {
-        const canvas = this.renderer.domElement;
-        this.camera.aspect = canvas.clientWidth / canvas.clientHeight;
-        this.camera.updateProjectionMatrix();
-      }
-      this.controls.update();
-      this.renderer.render(this.scene, this.camera);
+        if (this.resizeRendererToDisplaySize(this.renderer)) {
+            const canvas = this.renderer.domElement;
+            this.camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            this.camera.updateProjectionMatrix();
+        }
+        this.controls.update();
+        this.renderer.render(this.scene, this.camera);
     }
 
-    main(){
+    main() {
         const canvas = document.querySelector('#c') as HTMLCanvasElement;
-        this.renderer = new WebGLRenderer({canvas});
-    
+        this.renderer = new WebGLRenderer({ canvas });
+
         this.scene = new Scene();
         this.scene.background = new Color("lightblue");
-    
-        const worldSize : XYZ = { x : 32, y : 32, z : 32 };
+
+        const worldSize: XYZ = { x: 64, y: 32, z: 128 };
         const cellSize = 32;
 
-        function addLight(scene : Scene, position : XYZ) {
-          const color = 0xFFFFFF;
-          const intensity = 1;
-          const light = new DirectionalLight(color, intensity);
-          light.position.set(position.x, position.y, position.z);
-          scene.add(light);
+        function addLight(scene: Scene, position: XYZ) {
+            const color = 0xFFFFFF;
+            const intensity = 1;
+            const light = new DirectionalLight(color, intensity);
+            light.position.set(position.x, position.y, position.z);
+            scene.add(light);
         }
-        addLight(this.scene, {x:-1,  y:2,  z:4});
-        addLight(this.scene, {x:1,  y:-1,  z:-2});
+        addLight(this.scene, { x: -1, y: 2, z: 4 });
+        addLight(this.scene, { x: 1, y: -1, z: -2 });
 
         this.camera = new PerspectiveCamera(75, 2);
         this.camera.position.set(-cellSize * .3, cellSize * .8, -cellSize * .3);
@@ -73,14 +73,15 @@ export class Editor {
         this.controls.target.set(cellSize / 2, cellSize / 3, cellSize / 2);
         this.controls.update();
 
-        this.world = new VoxelWorld(worldSize, {cellSize: cellSize});
+        this.world = new VoxelWorld(worldSize, { cellSize: cellSize });
         for (let y = 0; y < worldSize.y; y++) {
             for (let z = 0; z < worldSize.z; z++) {
                 for (let x = 0; x < worldSize.x; x++) {
-                    const height = (Math.sin(x / cellSize * Math.PI * 2) + Math.sin(z / cellSize * Math.PI * 3)) * (cellSize / 6) + (cellSize / 2);
-                    if(y < height) {
+                    // const height = (Math.sin(x / cellSize * Math.PI * 2) + Math.sin(z / cellSize * Math.PI * 3)) * (cellSize / 6) + (cellSize / 2);
+                    const height = 32;
+                    if (y == x || y == z || x == z) {
                         const voxelId = Utils.randomInt(1, 20);
-                        this.world.setVoxel({x, y, z}, voxelId);
+                        this.world.setVoxel({ x, y, z }, voxelId);
                     }
                 }
             }
@@ -98,7 +99,7 @@ export class Editor {
         this.controls.addEventListener('change', () => editor.requestRenderIfNotRequested());
         window.addEventListener('resize', () => editor.requestRenderIfNotRequested());
     }
-    
-    
+
+
 
 }

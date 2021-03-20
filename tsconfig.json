@@ -3,8 +3,8 @@
         "target": "es6",
         "module": "commonjs",
         "lib": [
-          "dom",
-          "dom.iterable",
+            "dom",
+            "dom.iterable",
         ],
         "moduleResolution": "node",
         "experimentalDecorators": true,
