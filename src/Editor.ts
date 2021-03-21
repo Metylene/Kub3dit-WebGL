@@ -2,11 +2,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import VoxelWorld from './VoxelWorld/VoxelWorld';
 import { multiplyBy, XYZ } from "./Utils/XYZ";
 import { Utils } from "./Utils/Utils";
-<<<<<<< HEAD
 import { Color, WebGLRenderer, DirectionalLight, PerspectiveCamera, Scene, MeshLambertMaterial, Fog, MeshBasicMaterial, DirectionalLightHelper, MOUSE } from "three";
-=======
-import { Color, WebGLRenderer, DirectionalLight, PerspectiveCamera, Scene, MeshLambertMaterial, Fog, MeshBasicMaterial, DoubleSide, DirectionalLightHelper, AxesHelper, MOUSE } from "three";
->>>>>>> 45b6c88a4f3ef02c2527805981c9148239bb4bd2
 declare let window;
 
 export class Editor {
