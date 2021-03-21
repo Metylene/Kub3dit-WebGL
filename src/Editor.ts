@@ -2,7 +2,8 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import VoxelWorld from './VoxelWorld/VoxelWorld';
 import { multiplyBy, XYZ } from "./Utils/XYZ";
 import { Utils } from "./Utils/Utils";
-import { Color, WebGLRenderer, DirectionalLight, PerspectiveCamera, Scene, MeshLambertMaterial, Fog, MeshBasicMaterial } from "three";
+import { Color, WebGLRenderer, DirectionalLight, PerspectiveCamera, Scene, MeshLambertMaterial, Fog, MeshBasicMaterial, DoubleSide, DirectionalLightHelper, AxesHelper, MOUSE } from "three";
+declare let window;
 
 export class Editor {
 
@@ -94,25 +95,44 @@ export class Editor {
             const light = new DirectionalLight(color, intensity);
             light.position.set(position.x, position.y, position.z);
             scene.add(light);
+            const helper = new DirectionalLightHelper(light);
+            scene.add(helper);
         }
         addLight(this.scene, { x: -1, y: 2, z: 4 });
         addLight(this.scene, { x: 1, y: -1, z: -2 });
 
         this.camera = new PerspectiveCamera(75, 2);
-        this.camera.position.set(-cellSize * .3, cellSize * .8, -cellSize * .3);
+        this.camera.position.set(worldSize.x /2, cellSize * .5, worldSize.z /2);
 
         this.controls = new OrbitControls(this.camera, canvas);
-        this.controls.target.set(cellSize / 2, cellSize / 3, cellSize / 2);
+        this.controls.target.set(worldSize.x / 2 -cellSize * .3, cellSize / 3, worldSize.z / 2 -cellSize * .3);
+        this.controls.maxDistance = 50;
+        this.controls.enableZoom = false;
+        this.controls.screenSpacePanning = false;
+        this.controls.keyPanSpeed = 100.0;
+        this.controls.listenToKeyEvents(window);
+        this.controls.mouseButtons = {
+            LEFT: MOUSE.PAN,
+            MIDDLE: MOUSE.ROTATE,
+            RIGHT: MOUSE.ROTATE
+        }
+        this.controls.keys = {
+            LEFT: 81, // Q
+            UP: 90, // Z
+            RIGHT: 68, // D
+            BOTTOM: 83 // S
+        }
         this.controls.update();
+
+        // 3 axes at 0,0,0 to help visualizing space
+        // this.scene.add( new AxesHelper( 20 ) );
 
         this.world = new VoxelWorld(worldSize, { cellSize: cellSize });
         for (let y = 0; y < worldSize.y; y++) {
             for (let z = 0; z < worldSize.z; z++) {
                 for (let x = 0; x < worldSize.x; x++) {
                     const height = (Math.sin(x / cellSize * Math.PI * 2) + Math.sin(z / cellSize * Math.PI * 3)) * (cellSize / 6) + (cellSize / 2);
-                    // const height = 64;
                     if (y < height) {
-                    // if (y == x || y == z || x == z) {
                         const voxelId = Utils.randomInt(1, 20);
                         this.world.setVoxel({ x, y, z }, voxelId);
                     }
@@ -126,6 +146,22 @@ export class Editor {
         let editor = this;
         this.controls.addEventListener('change', () => editor.requestRenderIfNotRequested());
         window.addEventListener('resize', () => editor.requestRenderIfNotRequested());
+        window.addEventListener("keydown", event => {
+            if (event.isComposing || event.keyCode === 229) {
+              return;
+            }
+            if (event.code === "ShiftLeft") {
+                this.controls.screenSpacePanning = !this.controls.screenSpacePanning;
+            }
+        });
+        // window.addEventListener("keyup", event => {
+        //     if (event.isComposing || event.keyCode === 229) {
+        //       return;
+        //     }
+        //     if (event.code === "ShiftLeft") {
+        //         this.controls.screenSpacePanning = !this.controls.screenSpacePanning;
+        //     }
+        // });
     }
 
 
