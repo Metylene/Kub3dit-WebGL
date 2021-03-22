@@ -15,6 +15,13 @@ module.exports = {
                 test: /\.css$/i,
                 use: ['style-loader', 'css-loader'],
             },
+            {
+                test: /\.png|.ico/,
+                type: 'asset/resource',
+                generator: {
+                  filename: 'assets/[name][ext]?[hash]'
+                }
+            }
         ],
     },
     devtool: 'eval-source-map',
@@ -30,6 +37,7 @@ module.exports = {
     output: {
         filename: 'bundle.js',
         path: path.resolve(__dirname, 'dist'),
+        clean: true,
     },
     mode: 'development',
     plugins: [

@@ -6,7 +6,8 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "webpack serve --inline --open",
-        "dev": "webpack serve --inline --open --watch-content-base"
+        "dev": "webpack serve --inline --open --watch-content-base",
+        "build": "webpack"
     },
     "repository": {
         "type": "git",
